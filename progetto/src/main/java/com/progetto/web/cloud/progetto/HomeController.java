@@ -30,6 +30,3 @@ public class HomeController {
     return "index.html";
   }
 }
-
-
-//https://bug-free-computing-machine-v6rpvgpp4pqcp57q-8080.app.github.dev/swagger-ui/index.html#/home-controller/findById
