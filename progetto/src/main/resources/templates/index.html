@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="it" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Progetto - Home</title>
+    <style>
+      body { font-family: Arial, Helvetica, sans-serif; margin: 2rem; }
+      header { margin-bottom: 1.5rem; }
+      .info { margin: 1rem 0; padding: 1rem; background-color: #f5f5f5; border-radius: 4px; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Progetto</h1>
+      <p>Applicazione Spring Boot in esecuzione — pagina dinamica con Thymeleaf.</p>
+    </header>
+    <main>
+      <div class="info">
+        <p><strong>Nome utente:</strong> <span th:text="${name}">Guest</span></p>
+        <p><strong>Autenticato:</strong> <span th:text="${isAuthenticated}">false</span></p>
+        <p><strong>Ha autorità API:</strong> <span th:text="${isNice}">false</span></p>
+      </div>
+      <p>Questa è una pagina dinamica renderizzata tramite Thymeleaf.</p>
+    </main>
+  </body>
+</html>
