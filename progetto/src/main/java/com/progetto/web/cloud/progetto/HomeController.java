@@ -11,19 +11,18 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api")
 public class HomeController {
 
-    private final UserProfileService userProfileService;
-
-    public HomeController(UserProfileService userProfileService) {
-        this.userProfileService = userProfileService;
-    }
-
-    @GetMapping
-    public String getStatus() {
-        return "API REST protetta da Keycloak";
-    }
-
-    @GetMapping("/profile")
-    public UserProfile getProfile(Authentication authentication) {
-        return userProfileService.buildUserProfile(authentication);
-    }
+    @GetMapping("/")
+  public String getIndex(Model model, Authentication auth) {
+    model.addAttribute("name",
+        auth instanceof OAuth2AuthenticationToken oauth && oauth.getPrincipal() instanceof OidcUser oidc
+        ? oidc.getPreferredUsername()
+        : "");
+    model.addAttribute("isAuthenticated",
+        auth != null && auth.isAuthenticated());
+    model.addAttribute("isNice", 
+        auth != null && auth.getAuthorities().stream().anyMatch(authority -> {
+          return Objects.equals("API", authority.getAuthority());
+        }));
+    return "index.html";
+  }
 }
