@@ -3,9 +3,13 @@ package com.progetto.web.cloud.progetto;
 import com.progetto.web.cloud.progetto.user.UserProfile;
 import com.progetto.web.cloud.progetto.user.UserProfileService;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
+import org.springframework.security.oauth2.core.oidc.user.OidcUser;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import java.util.Objects;
 
 @RestController
 @RequestMapping("/api")
