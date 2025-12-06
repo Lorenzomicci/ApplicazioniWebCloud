@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 
 @Controller
-@RequestMapping("/api")
+@RequestMapping("/")
 public class HomeController {
 
     @GetMapping("/")
@@ -27,6 +27,6 @@ public class HomeController {
         auth != null && auth.getAuthorities().stream().anyMatch(authority -> {
           return Objects.equals("API", authority.getAuthority());
         }));
-    return "index.html";
+    return "index";
   }
 }
