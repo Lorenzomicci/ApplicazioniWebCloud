@@ -1,13 +1,10 @@
- server:
-   port: 8080
-   # needed for swagger-ui to detect correct proxied paths correctly.
-   # Configuration needed for the [Try out] buttons to work
-   # this works in combination with the proxied headers
-   # proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-   # proxy_set_header X-Forwarded-Prefix /services/impower-facilioo;
-   forward-headers-strategy: FRAMEWORK
+server:
+  port: 8080
+  forward-headers-strategy: framework
 
- spring:
+spring:
+  application:
+    name: progetto
   security:
     oauth2:
       resourceserver:
