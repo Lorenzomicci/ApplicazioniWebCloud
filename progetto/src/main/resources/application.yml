@@ -12,4 +12,4 @@
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: https://https://13.60.203.205:8443/realms/APIREST
+          issuer-uri: https://13.60.203.205:8443/realms/APIREST
