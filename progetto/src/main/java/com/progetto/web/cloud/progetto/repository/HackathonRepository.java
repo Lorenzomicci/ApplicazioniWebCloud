@@ -11,6 +11,8 @@ import java.util.Optional;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -32,8 +34,8 @@ public class HackathonRepository {
         }
 
         if (search != null && !search.isBlank()) {
-            sql.append(" AND (LOWER(name) LIKE :search OR LOWER(description) LIKE :search)");
-            params.addValue("search", "%" + search.toLowerCase() + "%");
+            sql.append(" AND (LOWER(name) LIKE :search ESCAPE '\\' OR LOWER(description) LIKE :search ESCAPE '\\')");
+            params.addValue("search", "%" + sanitizeSearch(search) + "%");
         }
 
         sql.append(" ORDER BY created_at DESC");
@@ -76,12 +78,11 @@ public class HackathonRepository {
                 .addValue("maxTeamSize", hackathon.maxTeamSize())
                 .addValue("maxParticipants", hackathon.maxParticipants());
 
-        jdbcTemplate.update(sql, params);
-        Long id = jdbcTemplate.getJdbcTemplate().queryForObject("SELECT LAST_INSERT_ID()", Long.class);
-        return new Hackathon(id, hackathon.name(), hackathon.slug(), hackathon.description(), hackathon.location(),
-                hackathon.status(), hackathon.registrationStartAt(), hackathon.registrationEndAt(),
-                hackathon.eventStartAt(), hackathon.eventEndAt(), hackathon.submissionDeadline(),
-                hackathon.minTeamSize(), hackathon.maxTeamSize(), hackathon.maxParticipants());
+        KeyHolder keyHolder = new GeneratedKeyHolder();
+        jdbcTemplate.update(sql, params, keyHolder, new String[] {"id"});
+        Long id = keyHolder.getKeyAs(Long.class);
+
+        return findById(id).orElseThrow(() -> new IllegalStateException("Hackathon non trovato dopo l'inserimento"));
     }
 
     public int update(Long id, Hackathon hackathon) {
@@ -139,9 +140,12 @@ public class HackathonRepository {
                 .addValue("hackathonId", hackathonId)
                 .addValue("name", track.name())
                 .addValue("description", track.description());
-        jdbcTemplate.update(sql, params);
-        Long id = jdbcTemplate.getJdbcTemplate().queryForObject("SELECT LAST_INSERT_ID()", Long.class);
-        return new HackathonTrack(id, hackathonId, track.name(), track.description(), LocalDateTime.now(), LocalDateTime.now());
+        KeyHolder keyHolder = new GeneratedKeyHolder();
+        jdbcTemplate.update(sql, params, keyHolder, new String[] {"id"});
+        Long id = keyHolder.getKeyAs(Long.class);
+
+        return findTrackById(id)
+                .orElseThrow(() -> new IllegalStateException("Track non trovata dopo l'inserimento"));
     }
 
     public int updateTrack(Long trackId, HackathonTrack track) {
@@ -159,6 +163,18 @@ public class HackathonRepository {
 
     public int deleteTrack(Long trackId) {
         return jdbcTemplate.update("DELETE FROM hackathon_tracks WHERE id = :id", Map.of("id", trackId));
+    }
+
+    public Optional<HackathonTrack> findTrackById(Long trackId) {
+        String sql = "SELECT * FROM hackathon_tracks WHERE id = :id";
+        List<HackathonTrack> results = jdbcTemplate.query(sql, Map.of("id", trackId), new TrackRowMapper());
+        return results.stream().findFirst();
+    }
+
+    private String sanitizeSearch(String search) {
+        return search.toLowerCase()
+                .replace("%", "\\%")
+                .replace("_", "\\_");
     }
 
     private static class HackathonRowMapper implements RowMapper<Hackathon> {
