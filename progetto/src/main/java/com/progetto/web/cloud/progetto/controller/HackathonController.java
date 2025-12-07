@@ -1,7 +1,10 @@
 package com.progetto.web.cloud.progetto.controller;
 
 import com.progetto.web.cloud.progetto.dto.HackathonDtos.HackathonRequest;
+import com.progetto.web.cloud.progetto.dto.HackathonDtos.HackathonResponse;
 import com.progetto.web.cloud.progetto.dto.HackathonDtos.TrackRequest;
+import com.progetto.web.cloud.progetto.dto.HackathonDtos.TrackResponse;
+import com.progetto.web.cloud.progetto.service.HackathonService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.springframework.http.HttpStatus;
@@ -13,82 +16,83 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Map;
+import java.net.URI;
+import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api")
 public class HackathonController {
 
+    private final HackathonService hackathonService;
+
+    public HackathonController(HackathonService hackathonService) {
+        this.hackathonService = hackathonService;
+    }
+
     @GetMapping("/hackathons")
     @Operation(summary = "Lista hackathon", description = "Filtri per stato, track e ricerca testuale")
-    public ResponseEntity<Map<String, String>> listHackathons(@RequestParam(required = false) String status,
-                                                              @RequestParam(required = false) String track,
-                                                              @RequestParam(required = false) String search,
-                                                              @RequestParam(required = false) Integer page,
-                                                              @RequestParam(required = false, name = "pageSize") Integer pageSize,
-                                                              @RequestParam(required = false) String sort) {
-        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED)
-                .body(Map.of("message", "Lista hackathon non ancora implementata"));
+    public ResponseEntity<List<HackathonResponse>> listHackathons(String status,
+                                                                  String search) {
+        return ResponseEntity.ok(hackathonService.list(status, search));
     }
 
     @GetMapping("/hackathons/{id}")
     @Operation(summary = "Dettaglio hackathon")
-    public ResponseEntity<Map<String, String>> getHackathon(@PathVariable String id) {
-        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED)
-                .body(Map.of("message", "Dettaglio hackathon non ancora implementato"));
+    public ResponseEntity<HackathonResponse> getHackathon(@PathVariable Long id) {
+        Optional<HackathonResponse> hackathon = hackathonService.findById(id);
+        return hackathon.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PostMapping("/hackathons")
     @Operation(summary = "Crea un nuovo hackathon", description = "Endpoint admin")
     @ApiResponse(responseCode = "201", description = "Hackathon creato")
-    public ResponseEntity<Map<String, String>> createHackathon(@RequestBody HackathonRequest request) {
-        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED)
-                .body(Map.of("message", "Creazione hackathon non ancora implementata"));
+    public ResponseEntity<HackathonResponse> createHackathon(@RequestBody HackathonRequest request) {
+        HackathonResponse created = hackathonService.create(request);
+        return ResponseEntity.created(URI.create("/api/hackathons/" + created.id())).body(created);
     }
 
     @PutMapping("/hackathons/{id}")
     @Operation(summary = "Aggiorna un hackathon", description = "Endpoint admin")
-    public ResponseEntity<Map<String, String>> updateHackathon(@PathVariable String id,
+    public ResponseEntity<HackathonResponse> updateHackathon(@PathVariable Long id,
                                                                @RequestBody HackathonRequest request) {
-        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED)
-                .body(Map.of("message", "Aggiornamento hackathon non ancora implementato"));
+        Optional<HackathonResponse> updated = hackathonService.update(id, request);
+        return updated.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/hackathons/{id}")
     @Operation(summary = "Archivia un hackathon", description = "Preferibile soft delete impostando lo status")
-    public ResponseEntity<Map<String, String>> deleteHackathon(@PathVariable String id) {
-        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED)
-                .body(Map.of("message", "Archiviazione hackathon non ancora implementata"));
+    public ResponseEntity<Void> deleteHackathon(@PathVariable Long id) {
+        boolean deleted = hackathonService.delete(id);
+        return deleted ? ResponseEntity.noContent().build() : ResponseEntity.notFound().build();
     }
 
     @GetMapping("/hackathons/{id}/tracks")
     @Operation(summary = "Elenco delle track di un hackathon")
-    public ResponseEntity<Map<String, String>> listTracks(@PathVariable String id) {
-        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED)
-                .body(Map.of("message", "Elenco track non ancora implementato"));
+    public ResponseEntity<List<TrackResponse>> listTracks(@PathVariable Long id) {
+        return ResponseEntity.ok(hackathonService.listTracks(id));
     }
 
     @PostMapping("/hackathons/{id}/tracks")
     @Operation(summary = "Crea una nuova track", description = "Endpoint admin")
-    public ResponseEntity<Map<String, String>> createTrack(@PathVariable String id, @RequestBody TrackRequest request) {
-        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED)
-                .body(Map.of("message", "Creazione track non ancora implementata"));
+    public ResponseEntity<TrackResponse> createTrack(@PathVariable Long id, @RequestBody TrackRequest request) {
+        TrackResponse track = hackathonService.createTrack(id, request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(track);
     }
 
     @PutMapping("/tracks/{trackId}")
     @Operation(summary = "Aggiorna una track", description = "Endpoint admin")
-    public ResponseEntity<Map<String, String>> updateTrack(@PathVariable String trackId, @RequestBody TrackRequest request) {
-        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED)
-                .body(Map.of("message", "Aggiornamento track non ancora implementato"));
+    public ResponseEntity<Void> updateTrack(@PathVariable Long trackId, @RequestBody TrackRequest request) {
+        boolean updated = hackathonService.updateTrack(trackId, request);
+        return updated ? ResponseEntity.ok().build() : ResponseEntity.notFound().build();
     }
 
     @DeleteMapping("/tracks/{trackId}")
     @Operation(summary = "Elimina o archivia una track", description = "Endpoint admin")
-    public ResponseEntity<Map<String, String>> deleteTrack(@PathVariable String trackId) {
-        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED)
-                .body(Map.of("message", "Eliminazione track non ancora implementata"));
+    public ResponseEntity<Void> deleteTrack(@PathVariable Long trackId) {
+        boolean deleted = hackathonService.deleteTrack(trackId);
+        return deleted ? ResponseEntity.noContent().build() : ResponseEntity.notFound().build();
     }
 }
