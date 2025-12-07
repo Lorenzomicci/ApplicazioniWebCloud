@@ -40,6 +40,11 @@ public class UserRepository {
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
                 """);
+
+        jdbcTemplate.execute("""
+                ALTER TABLE users
+                ADD COLUMN IF NOT EXISTS role VARCHAR(64) NOT NULL DEFAULT 'participant'
+                """);
     }
 
     public boolean existsByEmail(String email) {
