@@ -7,6 +7,7 @@ import com.progetto.web.cloud.progetto.dto.HackathonDtos.TrackResponse;
 import com.progetto.web.cloud.progetto.service.HackathonService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.net.URI;
@@ -34,8 +36,9 @@ public class HackathonController {
 
     @GetMapping("/hackathons")
     @Operation(summary = "Lista hackathon", description = "Filtri per stato, track e ricerca testuale")
-    public ResponseEntity<List<HackathonResponse>> listHackathons(String status,
-                                                                  String search) {
+    public ResponseEntity<List<HackathonResponse>> listHackathons(
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String search) {
         return ResponseEntity.ok(hackathonService.list(status, search));
     }
 
@@ -49,7 +52,7 @@ public class HackathonController {
     @PostMapping("/hackathons")
     @Operation(summary = "Crea un nuovo hackathon", description = "Endpoint admin")
     @ApiResponse(responseCode = "201", description = "Hackathon creato")
-    public ResponseEntity<HackathonResponse> createHackathon(@RequestBody HackathonRequest request) {
+    public ResponseEntity<HackathonResponse> createHackathon(@Valid @RequestBody HackathonRequest request) {
         HackathonResponse created = hackathonService.create(request);
         return ResponseEntity.created(URI.create("/api/hackathons/" + created.id())).body(created);
     }
@@ -57,7 +60,7 @@ public class HackathonController {
     @PutMapping("/hackathons/{id}")
     @Operation(summary = "Aggiorna un hackathon", description = "Endpoint admin")
     public ResponseEntity<HackathonResponse> updateHackathon(@PathVariable Long id,
-                                                               @RequestBody HackathonRequest request) {
+                                                             @Valid @RequestBody HackathonRequest request) {
         Optional<HackathonResponse> updated = hackathonService.update(id, request);
         return updated.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
@@ -77,14 +80,18 @@ public class HackathonController {
 
     @PostMapping("/hackathons/{id}/tracks")
     @Operation(summary = "Crea una nuova track", description = "Endpoint admin")
-    public ResponseEntity<TrackResponse> createTrack(@PathVariable Long id, @RequestBody TrackRequest request) {
-        TrackResponse track = hackathonService.createTrack(id, request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(track);
+    public ResponseEntity<TrackResponse> createTrack(@PathVariable Long id, @Valid @RequestBody TrackRequest request) {
+        try {
+            TrackResponse track = hackathonService.createTrack(id, request);
+            return ResponseEntity.status(HttpStatus.CREATED).body(track);
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
     }
 
     @PutMapping("/tracks/{trackId}")
     @Operation(summary = "Aggiorna una track", description = "Endpoint admin")
-    public ResponseEntity<Void> updateTrack(@PathVariable Long trackId, @RequestBody TrackRequest request) {
+    public ResponseEntity<Void> updateTrack(@PathVariable Long trackId, @Valid @RequestBody TrackRequest request) {
         boolean updated = hackathonService.updateTrack(trackId, request);
         return updated ? ResponseEntity.ok().build() : ResponseEntity.notFound().build();
     }

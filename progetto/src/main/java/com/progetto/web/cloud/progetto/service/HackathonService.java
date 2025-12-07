@@ -63,19 +63,19 @@ public class HackathonService {
                 request.slug(),
                 request.description(),
                 request.location(),
-                request.status(),
+                request.status() != null ? request.status() : "DRAFT",
                 toLocalDateTime(request.registrationStart()),
                 toLocalDateTime(request.registrationEnd()),
                 toLocalDateTime(request.eventStart()),
                 toLocalDateTime(request.eventEnd()),
                 toLocalDateTime(request.submissionDeadline()),
-                request.teamSizeMin(),
-                request.teamSizeMax(),
+                request.teamSizeMin() != null ? request.teamSizeMin() : 1,
+                request.teamSizeMax() != null ? request.teamSizeMax() : 5,
                 request.maxParticipants()
         );
 
         int updated = repository.update(id, hackathon);
-        return updated > 0 ? repository.findById(id).map(HackathonResponse::fromModel) : Optional.empty();
+        return updated > 0 ? Optional.of(HackathonResponse.fromModel(hackathon)) : Optional.empty();
     }
 
     @Transactional
@@ -89,6 +89,9 @@ public class HackathonService {
 
     @Transactional
     public TrackResponse createTrack(Long hackathonId, TrackRequest request) {
+        if (repository.findById(hackathonId).isEmpty()) {
+            throw new IllegalArgumentException("Hackathon not found");
+        }
         HackathonTrack track = new HackathonTrack(null, hackathonId, request.name(), request.description(), null, null);
         return TrackResponse.fromModel(repository.insertTrack(hackathonId, track));
     }

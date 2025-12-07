@@ -1,8 +1,10 @@
 package com.progetto.web.cloud.progetto.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
 import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 
 public final class HackathonDtos {
     private HackathonDtos() {
@@ -10,7 +12,9 @@ public final class HackathonDtos {
 
     @Schema(description = "Creazione o aggiornamento di un hackathon")
     public record HackathonRequest(
+            @NotBlank(message = "Il nome è obbligatorio")
             String name,
+            @NotBlank(message = "Lo slug è obbligatorio")
             String slug,
             String description,
             String location,
@@ -20,7 +24,9 @@ public final class HackathonDtos {
             OffsetDateTime eventEnd,
             OffsetDateTime submissionDeadline,
             Integer maxParticipants,
+            @Min(value = 1, message = "La dimensione minima del team deve essere almeno 1")
             Integer teamSizeMin,
+            @Min(value = 1, message = "La dimensione massima del team deve essere almeno 1")
             Integer teamSizeMax,
             String status
     ) {
@@ -63,12 +69,15 @@ public final class HackathonDtos {
         }
 
         private static OffsetDateTime toOffset(java.time.LocalDateTime localDateTime) {
-            return localDateTime != null ? localDateTime.atOffset(OffsetDateTime.now().getOffset()) : null;
+            return localDateTime != null ? localDateTime.atOffset(ZoneOffset.UTC) : null;
         }
     }
 
     @Schema(description = "Richiesta per creare o aggiornare una track")
-    public record TrackRequest(String name, String description) {
+    public record TrackRequest(
+            @NotBlank(message = "Il nome è obbligatorio")
+            String name,
+            String description) {
     }
 
     @Schema(description = "Track associata a un hackathon")
