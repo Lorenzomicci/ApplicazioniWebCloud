@@ -74,8 +74,14 @@ public class UserRepository {
             ps.setString(5, role);
             return ps;
         }, keyHolder);
-        Number key = keyHolder.getKey();
-        return key != null ? key.longValue() : -1L;
+        Number id = null;
+        if (keyHolder.getKeys() != null) {
+            Object key = keyHolder.getKeys().get("id");
+            if (key instanceof Number number) {
+                id = number;
+            }
+        }
+        return id != null ? id.longValue() : -1L;
     }
 
     public record RegisteredUser(Long id, String email, String passwordHash, String firstName, String lastName, String role) {
